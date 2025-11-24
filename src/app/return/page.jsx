@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import useAuth from "@/hook/useAuth";
 
 export default function ReturnCarPage() {
+  useAuth();
   const [rentals, setRentals] = useState([]);
   const [form, setForm] = useState({
     rentalId: "",

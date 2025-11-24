@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
+import useAuth from "@/hook/useAuth";
 
 export default function CarRegistrationPage() {
+  useAuth();
   const [form, setForm] = useState({
     carNo: "",
     make: "",

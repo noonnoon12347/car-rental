@@ -1,7 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
+import useAuth from "@/hook/useAuth";
 
 export default function CustomerPage() {
+  useAuth();
   const [form, setForm] = useState({
     customerId: "",
     name: "",

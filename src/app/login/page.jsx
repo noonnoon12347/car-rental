@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
@@ -19,6 +19,25 @@ export default function LoginPage() {
     });
   }
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: form.email,
+      password: form.password,
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    localStorage.setItem("token", data.session.access_token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    router.push("/");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white shadow-lg rounded-xl p-10 w-full max-w-md">
@@ -26,7 +45,7 @@ export default function LoginPage() {
           Car Rental Login
         </h2>
 
-        <form className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="block mb-1 font-medium">Username</label>
             <input

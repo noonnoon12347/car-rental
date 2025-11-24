@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import useAuth from "@/hook/useAuth";
 
 export default function RentalPage() {
+  useAuth();
   const [form, setForm] = useState({
     carId: "",
     customerId: "",
@@ -122,7 +124,7 @@ export default function RentalPage() {
     loadCars();
     loadCustomers();
   }, []);
-  console.log(rentals);
+
   useEffect(() => {
     if (!form.carId) return;
 
