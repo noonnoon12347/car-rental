@@ -1,0 +1,332 @@
+"use client";
+
+import { useState, useEffect } from "react";
+
+export default function RentalPage() {
+  const [form, setForm] = useState({
+    carId: "",
+    customerId: "",
+    customerName: "",
+    fee: "",
+    date: "",
+    dueDate: "",
+    total: "",
+  });
+  const [cars, setCars] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [rentals, setRentals] = useState([]);
+
+  const loadRentals = async () => {
+    const res = await fetch("/api/rentals");
+    const data = await res.json();
+    setRentals(data);
+  };
+
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const loadCars = async () => {
+    const res = await fetch("/api/cars");
+    const data = await res.json();
+
+    const availableCars = data.filter((c) => c.availability === true);
+
+    setCars(availableCars);
+  };
+
+  const loadCustomers = async () => {
+    const res = await fetch("/api/customers");
+    const data = await res.json();
+
+    const mapped = data.map((c) => ({
+      id: c.id,
+      customerId: c.customer_id,
+      name: c.customer_name,
+    }));
+
+    setCustomers(mapped);
+  };
+
+  const calculateTotal = (fee, startDate, endDate) => {
+    if (!fee || !startDate || !endDate) return "";
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    if (end < start) return ""; // ป้องกันวันที่ผิด
+
+    const diffDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+    return (Number(fee) * diffDays).toFixed(2);
+  };
+
+  const handleOK = async () => {
+    if (!form.carId || !form.customerId || !form.date || !form.dueDate) {
+      alert("Please fill all required fields");
+      return;
+    }
+
+    // หา car.id
+    const selectedCar = cars.find((c) => c.id == form.carId);
+    if (!selectedCar) return alert("Car not found");
+
+    // หา customer.id (primary key)
+    const selectedCustomer = customers.find(
+      (c) => c.customerId === form.customerId
+    );
+    if (!selectedCustomer) return alert("Customer not found");
+
+    const payload = {
+      car_id: selectedCar.id,
+      customer_id: selectedCustomer.id, // ⭐ ใช้ PK
+      rental_fee: Number(form.fee),
+      rental_date: form.date,
+      due_date: form.dueDate,
+      total_amount: Number(form.total),
+    };
+
+    const res = await fetch("/api/rentals", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      alert("Rental saved!");
+      handleCancel();
+    } else {
+      alert(result.error);
+    }
+  };
+
+  const handleCancel = () => {
+    setForm({
+      carId: "",
+      customerId: "",
+      customerName: "",
+      fee: "",
+      date: "",
+      dueDate: "",
+      total: "",
+    });
+  };
+
+  useEffect(() => {
+    loadRentals();
+    loadCars();
+    loadCustomers();
+  }, []);
+  console.log(rentals);
+  useEffect(() => {
+    if (!form.carId) return;
+
+    const selectedCar = cars.find((c) => c.id == form.carId);
+
+    if (selectedCar) {
+      setForm((prev) => ({
+        ...prev,
+        fee: selectedCar.rent_fee,
+      }));
+    }
+  }, [form.carId]);
+
+  useEffect(() => {
+    if (!form.customerId) {
+      setForm((prev) => ({ ...prev, customerName: "" }));
+      return;
+    }
+
+    const selected = customers.find((c) => c.customerId === form.customerId);
+
+    if (selected) {
+      setForm((prev) => ({
+        ...prev,
+        customerName: selected.name,
+      }));
+    }
+  }, [form.customerId, customers]);
+
+  useEffect(() => {
+    const total = calculateTotal(form.fee, form.date, form.dueDate);
+
+    setForm((prev) => ({
+      ...prev,
+      total: total,
+    }));
+  }, [form.fee, form.date, form.dueDate]);
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-10 px-10">
+      <div className="bg-white shadow-sm rounded-xl p-8 border border-gray-100">
+        <h2 className="text-2xl font-semibold text-gray-700 mb-8">Rental</h2>
+
+        <div className="space-y-6">
+          {/* Car ID */}
+          <Field label="Car ID">
+            <select
+              name="carId"
+              value={form.carId}
+              onChange={handleChange}
+              className="w-full rounded-md px-3 py-2 bg-gray-50 text-gray-700 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            >
+              <option value="">Select Car</option>
+              {cars.map((car) => (
+                <option key={car.id} value={car.id}>
+                  {car.car_reg_no}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          {/* Customer ID */}
+          <Field label="Customer ID">
+            <select
+              name="customerId"
+              value={form.customerId}
+              onChange={handleChange}
+              className="w-full rounded-md px-3 py-2 bg-gray-50 text-gray-700 focus:ring-2 focus:ring-blue-400"
+            >
+              <option value="">Select Customer</option>
+
+              {customers.map((c) => (
+                <option key={c.id} value={c.customerId}>
+                  {c.customerId}
+                </option>
+              ))}
+            </select>
+          </Field>
+
+          {/* Customer Name */}
+          <Field label="Customer Name">
+            <input
+              name="customerName"
+              value={form.customerName}
+              onChange={handleChange}
+              className="w-full rounded-md px-3 py-2 bg-gray-50 text-gray-600"
+              disabled
+            />
+          </Field>
+
+          {/* Rental Fee */}
+          <Field label="Rental Fee">
+            <input
+              name="fee"
+              value={form.fee}
+              onChange={handleChange}
+              className="w-full rounded-md px-3 py-2 bg-gray-50 text-gray-700 focus:ring-2 focus:ring-blue-400"
+            />
+          </Field>
+
+          {/* Date */}
+          <Field label="Date">
+            <input
+              type="date"
+              name="date"
+              value={form.date}
+              onChange={handleChange}
+              className="w-full rounded-md px-3 py-2 bg-gray-50 text-gray-700 focus:ring-2 focus:ring-blue-400"
+            />
+          </Field>
+
+          {/* Due Date */}
+          <Field label="Due Date">
+            <input
+              type="date"
+              name="dueDate"
+              value={form.dueDate}
+              onChange={handleChange}
+              className="w-full rounded-md px-3 py-2 bg-gray-50 text-gray-700 focus:ring-2 focus:ring-blue-400"
+            />
+          </Field>
+
+          {/* Total */}
+          <Field label="Total">
+            <input
+              name="total"
+              value={form.total}
+              readOnly
+              className="w-full rounded-md px-3 py-2 bg-gray-100 text-gray-600 cursor-not-allowed"
+            />
+          </Field>
+
+          {/* BUTTONS */}
+          <div className="flex gap-4 pt-4">
+            <button
+              className="px-5 py-2 rounded-lg bg-blue-500 text-white shadow hover:bg-blue-600 transition"
+              onClick={handleOK}
+            >
+              OK
+            </button>
+
+            <button
+              className="px-5 py-2 rounded-lg bg-gray-200 text-gray-700 shadow hover:bg-gray-300 transition"
+              onClick={handleCancel}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white shadow-sm rounded-xl p-8 border border-gray-100">
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+          CarRent Information
+        </h2>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 text-gray-700">
+                <th className="px-3 py-2 text-left font-medium">CustID</th>
+                <th className="px-3 py-2 text-left font-medium">CarID</th>
+                <th className="px-3 py-2 text-left font-medium">Start Date</th>
+                <th className="px-3 py-2 text-left font-medium">Due Date</th>
+                <th className="px-3 py-2 text-left font-medium">Rent Fee</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {rentals.map((rental, i) => (
+                <tr
+                  key={i}
+                  className="hover:bg-gray-50"
+                  onClick={() => handleSelectRental(rental.rental_id)}
+                >
+                  <td className="px-3 py-2">{rental.customers.customer_id}</td>
+                  <td className="px-3 py-2">{rental.cars.car_reg_no}</td>
+                  <td className="px-3 py-2">{rental.rental_start_date}</td>
+                  <td className="px-3 py-2">{rental.rental_due_date}</td>
+                  <td className="px-3 py-2">{rental.rental_total_amount}</td>
+                </tr>
+              ))}
+              {rentals.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-3 py-6 text-center text-gray-400"
+                  >
+                    No returned cars yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <div>
+      <label className="block font-medium text-gray-700 mb-1">{label}</label>
+      {children}
+    </div>
+  );
+}
