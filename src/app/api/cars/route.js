@@ -12,6 +12,8 @@ export async function POST(req) {
         car_model: body.car_model,
         rent_fee: body.car_rent_fee,
         availability: body.car_availability_status,
+        img_url: body.img_url,
+        img_path: body.img_path,
       },
     ])
     .select();

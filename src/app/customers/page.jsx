@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import useAuth from "@/hook/useAuth";
+import ImageUpload from "../components/ImageUpload";
+import { uploadImage } from "@/lib/uploadImage";
 
 export default function CustomerPage() {
   useAuth();
@@ -9,6 +11,7 @@ export default function CustomerPage() {
     name: "",
     address: "",
     mobile: "",
+    image: null,
   });
 
   const [customers, setCustomers] = useState([]);
@@ -23,11 +26,22 @@ export default function CustomerPage() {
   const handleAdd = async () => {
     if (!form.name) return;
 
+    let imageURL = null;
+    let imagePath = null;
+
+    if (form.image) {
+      const uploaded = await uploadImage(form.image, "customers");
+      imageURL = uploaded.url;
+      imagePath = uploaded.path;
+    }
+
     const payload = {
       customer_id: form.customerId,
       customer_name: form.name,
       customer_address: form.address,
       customer_mobile: form.mobile,
+      customer_url: imageURL,
+      customer_path: imagePath,
     };
 
     await fetch("/api/customers", {
@@ -49,6 +63,8 @@ export default function CustomerPage() {
       name: customer.customer_name,
       address: customer.customer_address,
       mobile: customer.customer_mobile,
+      url: customer.img_url,
+      path: customer.img_path,
     }));
 
     setCustomers(mapped);
@@ -104,6 +120,12 @@ export default function CustomerPage() {
               className="w-full rounded-md px-3 py-2 bg-gray-50 text-gray-700 focus:ring-2 focus:ring-blue-400 focus:outline-none"
             />
           </Field>
+          <ImageUpload
+            label="Customer Image"
+            value={form.image}
+            onChange={(file) => setForm({ ...form, image: file })}
+            page="customer"
+          />
 
           {/* BUTTONS */}
           <div className="flex gap-4 pt-4">
@@ -136,6 +158,7 @@ export default function CustomerPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-gray-50 text-gray-700">
+                <th className="px-3 py-2 text-left font-medium">Image</th>
                 <th className="px-3 py-2 text-left font-medium">CustomerID</th>
                 <th className="px-3 py-2 text-left font-medium">Name</th>
                 <th className="px-3 py-2 text-left font-medium">Address</th>
@@ -146,6 +169,15 @@ export default function CustomerPage() {
             <tbody className="divide-y divide-gray-100">
               {customers.map((c, i) => (
                 <tr key={i} className="hover:bg-gray-50">
+                  <td className="px-3 py-2 text-gray-700">
+                    <img
+                      src={
+                        c.url ||
+                        "https://jdmlaipjljktmgvsxgxb.supabase.co/storage/v1/object/public/customers/default.png"
+                      }
+                      className="w-10 h-10 rounded-full"
+                    />
+                  </td>
                   <td className="px-3 py-2 text-gray-700">{c.id}</td>
                   <td className="px-3 py-2 text-gray-700">{c.name}</td>
                   <td className="px-3 py-2 text-gray-700">{c.address}</td>
