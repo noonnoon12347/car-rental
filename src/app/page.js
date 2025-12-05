@@ -1,6 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import useAuth from "@/hook/useAuth";
+import ImageUpload from "./components/ImageUpload";
+import { uploadImage } from "@/lib/uploadImage";
+import { deleteImage } from "@/lib/deleteImage";
 
 export default function CarRegistrationPage() {
   useAuth();
@@ -10,6 +13,8 @@ export default function CarRegistrationPage() {
     model: "",
     rentFee: "",
     available: "Yes",
+    image: null,
+    imagePath: null,
   });
   const [selectedCarId, setSelectedCarId] = useState(null);
 
@@ -25,12 +30,23 @@ export default function CarRegistrationPage() {
   const handleAdd = async () => {
     if (!form.carNo || !form.make || !form.model) return;
 
+    let imageUrl = null;
+    let imagePath = null;
+
+    if (form.image instanceof File) {
+      const uploaded = await uploadImage(form.image, "cars");
+      imageUrl = uploaded.url;
+      imagePath = uploaded.path;
+    }
+
     const payload = {
       car_reg_no: form.carNo,
       car_make: form.make,
       car_model: form.model,
       car_rent_fee: Number(form.rentFee),
-      car_availability_status: form.available === "Yes" ? true : false,
+      car_availability_status: form.available === "Yes",
+      img_url: imageUrl,
+      img_path: imagePath,
     };
 
     const res = await fetch("/api/cars", {
@@ -39,11 +55,16 @@ export default function CarRegistrationPage() {
       body: JSON.stringify(payload),
     });
 
-    const result = await res.json();
-
     await fetchCars();
-
-    setForm({ carNo: "", make: "", model: "", rentFee: "", available: "Yes" });
+    setForm({
+      carNo: "",
+      make: "",
+      model: "",
+      rentFee: "",
+      available: "Yes",
+      image: null,
+      imagePath: null,
+    });
   };
 
   const fetchCars = async () => {
@@ -57,6 +78,8 @@ export default function CarRegistrationPage() {
       model: item.car_model,
       rentFee: item.rent_fee,
       available: item.availability === true ? "Yes" : "No",
+      imgURL: item.img_url || null,
+      imgPath: item.img_path || null,
     }));
 
     setCars(mapped);
@@ -65,12 +88,25 @@ export default function CarRegistrationPage() {
   const handleEdit = async () => {
     if (!selectedCarId) return alert("Please select a car to edit");
 
+    let imageUrl = form.image;
+    let imagePath = form.imagePath;
+
+    if (form.image instanceof File) {
+      const deleteOldImg = await deleteImage(form.imagePath, "cars");
+
+      const uploaded = await uploadImage(form.image, "cars");
+      imageUrl = uploaded.url;
+      imagePath = uploaded.path;
+    }
+
     const payload = {
       car_reg_no: form.carNo,
       car_make: form.make,
       car_model: form.model,
-      rent_fee: Number(form.rentFee),
-      availability: form.available,
+      car_rent_fee: Number(form.rentFee),
+      car_availability_status: form.available === "Yes",
+      img_url: imageUrl,
+      img_path: imagePath,
     };
 
     const res = await fetch(`/api/cars/${selectedCarId}`, {
@@ -79,18 +115,41 @@ export default function CarRegistrationPage() {
       body: JSON.stringify(payload),
     });
 
+    const result = await res.json();
+
     await fetchCars();
+    setForm({
+      carNo: "",
+      make: "",
+      model: "",
+      rentFee: "",
+      available: "Yes",
+      image: null,
+      imagePath: null,
+    });
   };
 
   const handleDelete = async () => {
     if (!selectedCarId) return alert("Please select a car to delete");
+
+    if (form.imagePath) {
+      await deleteImage(form.imagePath, "cars");
+    }
 
     await fetch(`/api/cars/${selectedCarId}`, {
       method: "DELETE",
     });
 
     setSelectedCarId(null);
-    setForm({ carNo: "", make: "", model: "", rentFee: "", available: "Yes" });
+    setForm({
+      carNo: "",
+      make: "",
+      model: "",
+      rentFee: "",
+      available: "Yes",
+      image: null,
+      imagePath: null,
+    });
     await fetchCars();
   };
 
@@ -103,12 +162,15 @@ export default function CarRegistrationPage() {
       model: "",
       rentFee: "",
       available: "Yes",
+      image: null,
+      imagePath: null,
     });
   };
 
   useEffect(() => {
     fetchCars();
   }, []);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-10 px-10">
       <div className="bg-white shadow-sm border border-gray-100 rounded-xl p-6">
@@ -117,6 +179,12 @@ export default function CarRegistrationPage() {
         </h2>
 
         <div className="space-y-4">
+          <ImageUpload
+            label="Car Image"
+            value={form.image}
+            onChange={(file) => setForm({ ...form, image: file })}
+          />
+
           <Input
             label="Car Reg No"
             name="carNo"
@@ -204,6 +272,7 @@ export default function CarRegistrationPage() {
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-50 text-gray-700">
+              <th className="px-3 py-2 font-medium">Image</th>
               <th className="px-3 py-2 font-medium">CarRegNo</th>
               <th className="px-3 py-2 font-medium">Make</th>
               <th className="px-3 py-2 font-medium">Model</th>
@@ -225,9 +294,14 @@ export default function CarRegistrationPage() {
                     model: car.model,
                     rentFee: car.rentFee,
                     available: car.available,
+                    image: car.imgURL,
+                    imagePath: car.imgPath,
                   });
                 }}
               >
+                <td className="px-3 py-2 text-gray-700">
+                  <img src={car.imgURL} className="w-20 h-10 object-cover" />
+                </td>
                 <td className="px-3 py-2 text-gray-700">{car.carNo}</td>
                 <td className="px-3 py-2 text-gray-700">{car.make}</td>
                 <td className="px-3 py-2 text-gray-700">{car.model}</td>
