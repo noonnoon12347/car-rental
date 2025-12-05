@@ -3,8 +3,6 @@ import { supabaseAdmin } from "../../../lib/supabase-admin";
 export async function POST(req) {
   const body = await req.json();
 
-  console.log("body", body);
-
   const { data, error } = await supabaseAdmin
     .from("cars")
     .insert([

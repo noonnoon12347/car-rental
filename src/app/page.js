@@ -183,6 +183,7 @@ export default function CarRegistrationPage() {
             label="Car Image"
             value={form.image}
             onChange={(file) => setForm({ ...form, image: file })}
+            page="car"
           />
 
           <Input
@@ -300,7 +301,13 @@ export default function CarRegistrationPage() {
                 }}
               >
                 <td className="px-3 py-2 text-gray-700">
-                  <img src={car.imgURL} className="w-20 h-10 object-cover" />
+                  <img
+                    src={
+                      car.imgURL ||
+                      "https://jdmlaipjljktmgvsxgxb.supabase.co/storage/v1/object/public/cars/default.png"
+                    }
+                    className="w-20 h-10 object-cover rounded-md"
+                  />
                 </td>
                 <td className="px-3 py-2 text-gray-700">{car.carNo}</td>
                 <td className="px-3 py-2 text-gray-700">{car.make}</td>

@@ -24,6 +24,8 @@ export async function POST(req) {
         customer_name: body.customer_name,
         customer_address: body.customer_address,
         customer_mobile: body.customer_mobile,
+        img_url: body.customer_url,
+        img_path: body.customer_url,
       },
     ])
     .select();

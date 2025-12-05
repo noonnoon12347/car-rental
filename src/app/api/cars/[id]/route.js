@@ -1,9 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-/**
- * GET /api/cars/[id]
- * ใช้ดึงข้อมูลรถคันเดียว
- */
 export async function GET(_, { params }) {
   const { id } = params;
 
@@ -22,7 +18,7 @@ export async function PUT(req, { params }) {
   const { id } = await params;
 
   const body = await req.json();
-  console.log("body", body);
+
   const { data, error } = await supabaseAdmin
     .from("cars")
     .update({
