@@ -39,12 +39,12 @@ export async function GET() {
       fine_amount,
       cars (
         id,
-        car_reg_no
+        car_reg_no,img_url
       ),
       customers (
         id,
         customer_id,
-        customer_name
+        customer_name,img_url
       )
     `
     )

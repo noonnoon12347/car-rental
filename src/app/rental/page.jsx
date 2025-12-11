@@ -299,8 +299,24 @@ export default function RentalPage() {
                   className="hover:bg-gray-50"
                   onClick={() => handleSelectRental(rental.rental_id)}
                 >
-                  <td className="px-3 py-2">{rental.customers.customer_id}</td>
-                  <td className="px-3 py-2">{rental.cars.car_reg_no}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex gap-1 items-center">
+                      <img
+                        src={rental.customers.img_url || "/default_user.png"}
+                        className="rounded-full w-5 h-5"
+                      />
+                      <p>{rental.customers.customer_id}</p>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex gap-1 items-center">
+                      <img
+                        src={rental.cars.img_url || "/default_car.png"}
+                        className="w-10 h-5 object-cover rounded-md"
+                      />
+                      <p>{rental.cars.car_reg_no}</p>
+                    </div>
+                  </td>
                   <td className="px-3 py-2">{rental.rental_start_date}</td>
                   <td className="px-3 py-2">{rental.rental_due_date}</td>
                   <td className="px-3 py-2">{rental.rental_total_amount}</td>
