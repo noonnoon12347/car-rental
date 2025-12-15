@@ -39,11 +39,15 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex flex-col items-center  pt-10 bg-gray-100">
+      <div className="flex justify-center">      
+        <img src="https://jdmlaipjljktmgvsxgxb.supabase.co/storage/v1/object/public/cars/weblogo.png" alt="Girl in a jacket"  className="h-60 w-auto"/>
+        </div>
       <div className="bg-white shadow-lg rounded-xl p-10 w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          Car Rental Login
-        </h2>
+       
+        <h1 className="text-2xl font-bold mb-6 text-center">
+          Car Rental Login 
+        </h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
