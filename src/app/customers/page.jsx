@@ -5,7 +5,7 @@ import ImageUpload from "../components/ImageUpload";
 import { uploadImage } from "@/lib/uploadImage";
 
 export default function CustomerPage() {
-  useAuth();
+  const { loading } = useAuth("admin");
   const [form, setForm] = useState({
     customerId: "",
     name: "",
@@ -77,6 +77,15 @@ export default function CustomerPage() {
   useEffect(() => {
     fetchCustomers();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="p-10 text-center text-gray-500">
+        Checking authentication...
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mt-10 px-10">
       {/* LEFT: FORM */}

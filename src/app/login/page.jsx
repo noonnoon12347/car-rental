@@ -32,21 +32,43 @@ export default function LoginPage() {
       return;
     }
 
-    localStorage.setItem("token", data.session.access_token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+    const user = data.user;
+    if (user.app_metadata?.role === "admin") {
+      localStorage.setItem("userRole", "admin");
+      window.location.href = "/";
+    } else if (user.app_metadata?.role === "customer") {
+      const res = await fetch(`/api/customers/${user.id}`);
+      const customerData = await res.json();
 
-    router.push("/");
+      if (!customerData.error) {
+        localStorage.setItem("userRole", "customer");
+        const profile = {
+          id: customerData.id,
+          customer_id: customerData.customer_id,
+          name: customerData.customer_name,
+          mobile: customerData.customer_mobile,
+          address: customerData.customer_address,
+          img: customerData.img_url,
+        };
+
+        localStorage.setItem("userProfile", JSON.stringify(profile));
+        window.location.href = "/my-rentals";
+      }
+    }
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center  pt-10 bg-gray-100">
-      <div className="flex justify-center">      
-        <img src="https://jdmlaipjljktmgvsxgxb.supabase.co/storage/v1/object/public/cars/weblogo.png" alt="Girl in a jacket"  className="h-60 w-auto"/>
-        </div>
+      <div className="flex justify-center">
+        <img
+          src="https://jdmlaipjljktmgvsxgxb.supabase.co/storage/v1/object/public/cars/weblogo.png"
+          alt="Girl in a jacket"
+          className="h-60 w-auto"
+        />
+      </div>
       <div className="bg-white shadow-lg rounded-xl p-10 w-full max-w-md">
-       
         <h1 className="text-2xl font-bold mb-6 text-center">
-          Car Rental Login 
+          Car Rental Login
         </h1>
 
         <form onSubmit={handleSubmit} className="space-y-5">

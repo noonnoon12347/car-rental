@@ -2,23 +2,36 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/utils/supabase/client";
 
-export default function useAuth() {
+export default function useAuth(allowedRole) {
   const router = useRouter();
-
-  const [isAuth, setIsAuth] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    checkUser();
+  }, [router, allowedRole]);
 
-    if (!token) {
-      setIsAuth(false);
+  const checkUser = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
       router.replace("/login");
-      return;
+    } else {
+      const userRole = localStorage.getItem("userRole");
+
+      if (allowedRole && userRole !== allowedRole) {
+        if (userRole === "admin") {
+          router.replace("/");
+        } else {
+          router.replace("/my-rentals");
+        }
+      }
     }
+    setLoading(false);
+  };
 
-    setIsAuth(true);
-  }, []);
-
-  return { isAuth };
+  return { loading };
 }
