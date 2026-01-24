@@ -1,6 +1,6 @@
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/NavBar";
+import ChatWidget from "./components/ChatWidget";
 
 export const metadata = {
   title: "Create Next App",
@@ -13,6 +13,7 @@ export default function RootLayout({ children }) {
       <body>
         <Navbar />
         <main>{children}</main>
+        <ChatWidget />
       </body>
     </html>
   );
