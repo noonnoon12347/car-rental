@@ -10,7 +10,7 @@ export default function ChatWidget() {
       {open && (
         <div className="fixed bottom-25 right-6 z-50 w-[360px] h-[520px] bg-white rounded-2xl shadow-xl  flex flex-col overflow-hidden">
           <div className="h-12 px-4 flex items-center justify-between">
-            <p className="font-semibold">Chatbot</p>
+            <p className="font-semibold">Service</p>
             <button
               onClick={() => setOpen(false)}
               className="text-sm hover:cursor-pointer"
