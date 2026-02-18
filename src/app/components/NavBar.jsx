@@ -35,7 +35,9 @@ export default function Navbar() {
   return (
     <nav className="w-full bg-primary text-white shadow-md">
       <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
-        <a className="text-xl font-bold hover:opacity-90">Car Rental System</a>
+        <a href="/today-rental" className="text-xl font-bold hover:opacity-90">
+          Car Rental System
+        </a>
         <div className="flex gap-6 text-sm font-medium">
           {role === "admin" && (
             <>

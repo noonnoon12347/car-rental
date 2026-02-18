@@ -35,7 +35,7 @@ export default function LoginPage() {
     const user = data.user;
     if (user.app_metadata?.role === "admin") {
       localStorage.setItem("userRole", "admin");
-      window.location.href = "/";
+      window.location.href = "/today-rental";
     } else if (user.app_metadata?.role === "customer") {
       const res = await fetch(`/api/customers/${user.id}`);
       const customerData = await res.json();
